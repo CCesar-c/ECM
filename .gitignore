@@ -26,10 +26,10 @@ sysinfo.txt
 
 # Configuración local de usuario
 UserSettings/
+
+# Configuración de editores/IDEs
 .vscode/
 .idea/
-
-# Archivos del Rider y JetBrains
 *.sln
 *.csproj
 *.unityproj
@@ -41,15 +41,14 @@ UserSettings/
 *.mdb
 *.opendb
 *.VC.db
+*.DotSettings.user
 
-# Builds específicas de plataforma
-[Bb]uild/
-[Bb]uilds/
+# Builds exportadas
 *.apk
 *.exe
 *.aab
-*.unitypackage
 *.app
+*.unitypackage
 *.xcodeproj
 *.xcworkspace
 *.xcuserstate
@@ -68,16 +67,10 @@ Assets/AddressableAssetsData/*/*.json
 *.cginc.meta
 *.hlsl.meta
 
-# Archivos de caché del editor
-*.unitypackage
+# Archivos temporales
 *.log
 *.swp
 *.tmp
-
-# Cache de Rider y VS
-.idea/
-.vscode/
-*.DotSettings.user
 
 # =========================================
 # Archivos que sí deben mantenerse

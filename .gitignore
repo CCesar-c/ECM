@@ -1,0 +1,84 @@
+# =========================================
+# Unity 2019.4.40f1 .gitignore
+# =========================================
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Unity generados automáticamente
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Oo]bj/
+
+# Cache del paquete de Unity
+[Pp]ackages/com.unity.package-manager/
+[Pp]ackageCache/
+
+# Compilaciones de IL2CPP
+Il2CppOutputProject/
+
+# Carpetas del sistema operativo
+sysinfo.txt
+
+# Configuración local de usuario
+UserSettings/
+.vscode/
+.idea/
+
+# Archivos del Rider y JetBrains
+*.sln
+*.csproj
+*.unityproj
+*.pidb
+*.user
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Builds específicas de plataforma
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.xcodeproj
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata/
+
+# Archivos de colab (si no se usa Unity Collab)
+.collab/
+
+# Archivos de cache de Addressables
+[Bb]uild/[Aa]ddressables/
+Assets/AddressableAssetsData/*/*.bin*
+Assets/AddressableAssetsData/*/*.json
+
+# Archivos de cache de Shader
+*.shadergraph.meta
+*.cginc.meta
+*.hlsl.meta
+
+# Archivos de caché del editor
+*.unitypackage
+*.log
+*.swp
+*.tmp
+
+# Cache de Rider y VS
+.idea/
+.vscode/
+*.DotSettings.user
+
+# =========================================
+# Archivos que sí deben mantenerse
+# =========================================
+!Assets/
+!ProjectSettings/
+!Packages/

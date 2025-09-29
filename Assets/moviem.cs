@@ -6,12 +6,15 @@ using Mirror;
 
 public class moviem : NetworkBehaviour
 {
+    [SyncVar] public int Vida = 200;
     public float speed = 5f;      // Velocidad del movimiento
     public float jumpForce = 5f;  // Fuerza del salto
     private Rigidbody rb;
     private bool isGrounded;
     public Camera playerCamera;
     private float xRotation = 0f;
+    public Transform spawn;
+    public GameObject bala;
     private readonly float mouseSensitivity = 100;
 
     public override void OnStartLocalPlayer()
@@ -30,6 +33,15 @@ public class moviem : NetworkBehaviour
         // --- Movimiento en el plano ---
         if (isLocalPlayer)
         {
+            if (Vida <= 0)
+            {
+                NetworkServer.Destroy(this.gameObject);
+            }
+            if (Input.GetKey(KeyCode.Mouse0))
+            {
+                CrearBala();
+            }
+
             float moveX = Input.GetAxis("Horizontal");  // A/D o ←/→
             float moveZ = Input.GetAxis("Vertical");    // W/S o ↑/↓
 
@@ -74,4 +86,11 @@ public class moviem : NetworkBehaviour
             isGrounded = false;
         }
     }
+    [Command]
+    public void CrearBala()
+    {
+        GameObject b = Instantiate(bala, spawn.transform.position, spawn.transform.rotation);
+        NetworkServer.Spawn(b);
+    }
+
 }

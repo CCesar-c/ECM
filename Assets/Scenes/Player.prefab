@@ -247,9 +247,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  Vida: 200
   speed: 5
   jumpForce: 5
   playerCamera: {fileID: 6878531280368551696}
+  spawn: {fileID: 9102574219563810724}
+  bala: {fileID: 8039215126728737379, guid: 60cd8653c5b896d41be0cc7dca0bcca8, type: 3}
 --- !u!54 &1185595318723225492
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -44,6 +44,7 @@ UserSettings/
 
 # Builds específicas de plataforma
 *.apk
+*.exe
 *.aab
 *.unitypackage
 *.app

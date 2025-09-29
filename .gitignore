@@ -43,6 +43,8 @@ UserSettings/
 *.VC.db
 
 # Builds específicas de plataforma
+[Bb]uild/
+[Bb]uilds/
 *.apk
 *.exe
 *.aab

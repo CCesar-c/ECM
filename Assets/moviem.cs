@@ -97,7 +97,7 @@ public class moviem : NetworkBehaviour
     {
         //municion--;
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-        NetworkServer.Spawn(b);
+        NetworkServer.Spawn(b, connectionToClient);
         b.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
 
         puedeDisparar = false;

@@ -5,14 +5,16 @@ using Mirror;
 
 public class bsla : NetworkBehaviour
 {
-    public int damage = 20;
-    public int municion = 20;
-
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.GetComponent<moviem>() != null)
         {
-            collision.gameObject.GetComponent<moviem>().Vida -= damage;
+            collision.gameObject.GetComponent<moviem>().Vida -= moviem.instance.damage;
+            NetworkServer.Destroy(this.gameObject);
+        }
+        else
+        {
+            NetworkServer.Destroy(this.gameObject);
         }
     }
 }

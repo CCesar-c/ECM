@@ -2,10 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using UnityEngine.UI;
 
 
 public class moviem : NetworkBehaviour
 {
+    public static moviem instance;
+    public Slider bar;
+    // public bsla bala;
     [SyncVar] public int Vida = 200;
     public float speed = 5f;      // Velocidad del movimiento
     public float jumpForce = 5f;  // Fuerza del salto
@@ -13,9 +17,14 @@ public class moviem : NetworkBehaviour
     private bool isGrounded;
     public Camera playerCamera;
     private float xRotation = 0f;
+    public float mouseSensitivity = 100;
+    public int damage = 20;
+    [SyncVar] public int municion = 20;
+    [SyncVar] public float delay = 2f;
     public Transform spawn;
     public GameObject bala;
-    private readonly float mouseSensitivity = 100;
+
+    public bool puedeDisparar = false;
 
     public override void OnStartLocalPlayer()
     {
@@ -26,6 +35,7 @@ public class moviem : NetworkBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        instance = GetComponent<moviem>();
     }
 
     void Update()
@@ -33,15 +43,22 @@ public class moviem : NetworkBehaviour
         // --- Movimiento en el plano ---
         if (isLocalPlayer)
         {
+            bar.value = Vida;
             if (Vida <= 0)
             {
-                NetworkServer.Destroy(this.gameObject);
-            }
-            if (Input.GetKey(KeyCode.Mouse0))
-            {
-                CrearBala();
+                //Debug.Log("morri..!!");
+                NetworkServer.Destroy(gameObject);
             }
 
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                puedeDisparar = true;
+                if (puedeDisparar && municion > 0)
+                {
+                    CmdCrearBala();
+
+                }
+            }
             float moveX = Input.GetAxis("Horizontal");  // A/D o ←/→
             float moveZ = Input.GetAxis("Vertical");    // W/S o ↑/↓
 
@@ -70,6 +87,24 @@ public class moviem : NetworkBehaviour
         }
     }
 
+    [Command]
+    void CmdCrearBala()
+    {
+        StartCoroutine(DisparoCooldown());
+    }
+
+    IEnumerator DisparoCooldown()
+    {
+        //municion--;
+        GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
+        NetworkServer.Spawn(b);
+        b.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
+
+        puedeDisparar = false;
+        yield return new WaitForSeconds(delay);
+        puedeDisparar = true;
+    }
+
     // Detectar si está en el suelo
     private void OnCollisionEnter(Collision collision)
     {
@@ -86,11 +121,4 @@ public class moviem : NetworkBehaviour
             isGrounded = false;
         }
     }
-    [Command]
-    public void CrearBala()
-    {
-        GameObject b = Instantiate(bala, spawn.transform.position, spawn.transform.rotation);
-        NetworkServer.Spawn(b);
-    }
-
 }

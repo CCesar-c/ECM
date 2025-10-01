@@ -14,7 +14,7 @@ public class moviem : NetworkBehaviour
     public float speed = 5f;      // Velocidad del movimiento
     public float jumpForce = 5f;  // Fuerza del salto
     private Rigidbody rb;
-    private bool isGrounded;
+    public bool isGrounded;
     public Camera playerCamera;
     private float xRotation = 0f;
     public float mouseSensitivity = 100;
@@ -68,9 +68,10 @@ public class moviem : NetworkBehaviour
             Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
             rb.velocity = newVelocity;
             // --- Salto ---
-            if (Input.GetButtonDown("Jump") && isGrounded)
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
             {
                 rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+                isGrounded = false;
             }
 
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
@@ -112,8 +113,7 @@ public class moviem : NetworkBehaviour
             isGrounded = true;
         }
     }
-
-    private void OnCollisionExit(Collision collision)
+    void OnCollisionExit(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {

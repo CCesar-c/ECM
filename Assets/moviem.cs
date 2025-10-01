@@ -23,7 +23,7 @@ public class moviem : NetworkBehaviour
     [SyncVar] public float delay = 2f;
     public Transform spawn;
     public GameObject bala;
-
+    public GameObject[] Armas;
     public bool puedeDisparar = false;
 
     public override void OnStartLocalPlayer()
@@ -119,5 +119,10 @@ public class moviem : NetworkBehaviour
         {
             isGrounded = false;
         }
+    }
+
+    public void Armastates()
+    {
+        
     }
 }

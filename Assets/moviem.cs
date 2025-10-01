@@ -56,7 +56,6 @@ public class moviem : NetworkBehaviour
                 if (puedeDisparar && municion > 0)
                 {
                     CmdCrearBala();
-
                 }
             }
             float moveX = Input.GetAxis("Horizontal");  // A/D o ←/→

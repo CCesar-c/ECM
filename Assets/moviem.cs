@@ -4,17 +4,14 @@ using UnityEngine;
 using Mirror;
 using UnityEngine.UI;
 
-
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
     public Slider bar;
-    // public bsla bala;
     [SyncVar] public int Vida = 200;
-    public float speed = 5f;      // Velocidad del movimiento
-    public float jumpForce = 5f;  // Fuerza del salto
+    public float speed = 5f;
+    public float jumpForce = 5f;
     private Rigidbody rb;
-    public bool isGrounded;
     public Camera playerCamera;
     private float xRotation = 0f;
     public float mouseSensitivity = 100;
@@ -24,7 +21,15 @@ public class moviem : NetworkBehaviour
     public Transform spawn;
     public GameObject bala;
     public GameObject[] Armas;
-    public bool puedeDisparar = false;
+    [SyncVar] public bool puedeDisparar = true;
+
+    public enum Typ
+    {
+        Automatico,
+        Manual
+    }
+
+    public Typ typo;
 
     public override void OnStartLocalPlayer()
     {
@@ -34,55 +39,68 @@ public class moviem : NetworkBehaviour
 
     void Start()
     {
+        puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
         instance = GetComponent<moviem>();
     }
 
     void Update()
     {
-        // --- Movimiento en el plano ---
         if (isLocalPlayer)
         {
+            Armastates();
+
+            // --- Barra de vida ---
             bar.value = Vida;
             if (Vida <= 0)
             {
-                //Debug.Log("morri..!!");
                 NetworkServer.Destroy(gameObject);
+                return;
             }
 
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+            // --- Disparo ---
+            if (typo == Typ.Automatico)
             {
-                puedeDisparar = true;
-                if (puedeDisparar && municion > 0)
+                if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                 {
+                    puedeDisparar = false;
                     CmdCrearBala();
                 }
             }
-            float moveX = Input.GetAxis("Horizontal");  // A/D o ←/→
-            float moveZ = Input.GetAxis("Vertical");    // W/S o ↑/↓
-
-            // Dirección en base a la rotación del jugador
-            Vector3 move = transform.right * moveX + transform.forward * moveZ;
-
-            // Mantener la velocidad Y (gravedad/salto)
-            Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
-            rb.velocity = newVelocity;
-            // --- Salto ---
-            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            else if (typo == Typ.Manual)
             {
-                rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-                isGrounded = false;
+                if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
+                {
+                    puedeDisparar = false;
+                    CmdCrearBala();
+                }
             }
 
+            // --- Movimiento ---
+            float moveX = Input.GetAxis("Horizontal");
+            float moveZ = Input.GetAxis("Vertical");
+
+            Vector3 move = transform.right * moveX + transform.forward * moveZ;
+            Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
+            rb.velocity = newVelocity;
+
+            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
+            {
+                Vector3 vel = rb.velocity;
+                vel.y = 0; // resetea la velocidad vertical para saltar limpio
+                rb.velocity = vel;
+
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            }
+
+            // --- Rotación ---
             float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
             float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            // Rotación vertical de la cámara
             xRotation -= mouseY;
             xRotation = Mathf.Clamp(xRotation, -90f, 90f);
             playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-            // Rotación horizontal del cuerpo del jugador
             transform.Rotate(Vector3.up * mouseX);
         }
     }
@@ -90,39 +108,64 @@ public class moviem : NetworkBehaviour
     [Command]
     void CmdCrearBala()
     {
+        municion--;
+
+        // Instanciar y sincronizar la bala inmediatamente
+        GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
+        NetworkServer.Spawn(b, connectionToClient);
+        b.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
+
+        // Iniciar cooldown
         StartCoroutine(DisparoCooldown());
     }
 
     IEnumerator DisparoCooldown()
     {
-        //municion--;
-        GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-        NetworkServer.Spawn(b, connectionToClient);
-        b.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
-
-        puedeDisparar = false;
+        // Espera antes de permitir otro disparo
         yield return new WaitForSeconds(delay);
         puedeDisparar = true;
     }
 
-    // Detectar si está en el suelo
-    private void OnCollisionEnter(Collision collision)
+    bool IsGrounded()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-    void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
+        // Raycast desde el centro hacia abajo
+        return Physics.Raycast(transform.position, Vector3.down, 1.1f);
     }
 
     public void Armastates()
     {
-        
+        for (int i = 0; i < Armas.Length; i++)
+        {
+            if (Armas[i].activeInHierarchy)
+            {
+                switch (i)
+                {
+                    case 0:
+                        typo = Typ.Manual;
+                        damage = 10;
+                        municion = 20;
+                        delay = 0.5f;
+                        break;
+                    case 1:
+                        typo = Typ.Manual;
+                        damage = 100;
+                        municion = 5;
+                        delay = 1;
+                        break;
+                    case 2:
+                        typo = Typ.Automatico;
+                        damage = 30;
+                        municion = 60;
+                        delay = 0.25f;
+                        break;
+                    case 3:
+                        typo = Typ.Manual;
+                        damage = 200;
+                        municion = 5;
+                        delay = 1;
+                        break;
+                }
+            }
+        }
     }
 }

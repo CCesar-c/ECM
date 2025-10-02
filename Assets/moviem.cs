@@ -63,6 +63,43 @@ public class moviem : NetworkBehaviour
             {
                 Cmdreload();
             }
+            if (Input.GetKeyDown(KeyCode.Alpha0))
+            {
+
+                for (int i = 0; i < Armas.Length; i++)
+                {
+                    Armas[i].SetActive(false);
+                }
+                Armas[0].SetActive(true);
+                Armastates();
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                for (int i = 0; i < Armas.Length; i++)
+                {
+                    Armas[i].SetActive(false);
+                }
+                Armas[1].SetActive(true);
+                Armastates();
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                for (int i = 0; i < Armas.Length; i++)
+                {
+                    Armas[i].SetActive(false);
+                }
+                Armas[2].SetActive(true);
+                Armastates();
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                for (int i = 0; i < Armas.Length; i++)
+                {
+                    Armas[i].SetActive(false);
+                }
+                Armas[3].SetActive(true);
+                Armastates();
+            }
             // --- Disparo ---
             if (typo == Typ.Automatico)
             {

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using UnityEngine.UI;
+using UnityEngine.SocialPlatforms;
 
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
+    public Text text_muni;
     public Slider bar;
     [SyncVar] public int Vida = 200;
     public float speed = 5f;
@@ -15,8 +17,8 @@ public class moviem : NetworkBehaviour
     public Camera playerCamera;
     private float xRotation = 0f;
     public float mouseSensitivity = 100;
-    public int damage = 20;
-    [SyncVar] public int municion = 20;
+    public int damage;
+    public int municion;
     [SyncVar] public float delay = 2f;
     public Transform spawn;
     public GameObject bala;
@@ -39,6 +41,7 @@ public class moviem : NetworkBehaviour
 
     void Start()
     {
+        Armastates();
         puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
         instance = GetComponent<moviem>();
@@ -48,8 +51,7 @@ public class moviem : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            Armastates();
-
+            text_muni.text = municion.ToString();
             // --- Barra de vida ---
             bar.value = Vida;
             if (Vida <= 0)
@@ -57,7 +59,10 @@ public class moviem : NetworkBehaviour
                 NetworkServer.Destroy(gameObject);
                 return;
             }
-
+            if (Input.GetKeyDown(KeyCode.R)&& municion > 0)
+            {
+                Cmdreload();
+            }
             // --- Disparo ---
             if (typo == Typ.Automatico)
             {
@@ -119,6 +124,19 @@ public class moviem : NetworkBehaviour
         StartCoroutine(DisparoCooldown());
     }
 
+    [Command]
+    void Cmdreload()
+    {
+        StartCoroutine(nameof(recarga));
+    }
+    IEnumerator recarga() {
+        puedeDisparar = false;
+        text_muni.text = municion.ToString();
+        yield return new WaitForSeconds(delay * 2);
+        puedeDisparar = true;
+        municion = 20;
+    }
+
     IEnumerator DisparoCooldown()
     {
         // Espera antes de permitir otro disparo
@@ -132,6 +150,12 @@ public class moviem : NetworkBehaviour
         return Physics.Raycast(transform.position, Vector3.down, 1.1f);
     }
 
+    void Anim(Transform go)
+    {
+        Vector3 v = new Vector3(0, 0, go.transform.localPosition - 1);
+        go.localPosition = Vector3.Lerp(go.transform.localPosition, v, delay * Time.deltaTime);
+        
+    }
     public void Armastates()
     {
         for (int i = 0; i < Armas.Length; i++)

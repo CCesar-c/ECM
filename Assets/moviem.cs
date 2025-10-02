@@ -18,12 +18,12 @@ public class moviem : NetworkBehaviour
     private float xRotation = 0f;
     public float mouseSensitivity = 100;
     public int damage;
-    public int municion;
+    [SyncVar] public int municion;
     [SyncVar] public float delay = 2f;
     public Transform spawn;
     public GameObject bala;
     public GameObject[] Armas;
-    [SyncVar] public bool puedeDisparar = true;
+    public bool puedeDisparar = true;
 
     public enum Typ
     {
@@ -59,7 +59,7 @@ public class moviem : NetworkBehaviour
                 NetworkServer.Destroy(gameObject);
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.R)&& municion > 0)
+            if (Input.GetKeyDown(KeyCode.R) && municion >= 0)
             {
                 Cmdreload();
             }
@@ -68,7 +68,7 @@ public class moviem : NetworkBehaviour
             {
                 if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                 {
-                    puedeDisparar = false;
+                    StartCoroutine(DisparoCooldown());
                     CmdCrearBala();
                 }
             }
@@ -76,7 +76,7 @@ public class moviem : NetworkBehaviour
             {
                 if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                 {
-                    puedeDisparar = false;
+                    StartCoroutine(DisparoCooldown());
                     CmdCrearBala();
                 }
             }
@@ -114,14 +114,11 @@ public class moviem : NetworkBehaviour
     void CmdCrearBala()
     {
         municion--;
-
         // Instanciar y sincronizar la bala inmediatamente
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
+        Rigidbody rbBala = b.GetComponent<Rigidbody>();
+        rbBala.velocity = transform.forward * 100f; // más fiable que AddForce para bullets rápidas
         NetworkServer.Spawn(b, connectionToClient);
-        b.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
-
-        // Iniciar cooldown
-        StartCoroutine(DisparoCooldown());
     }
 
     [Command]
@@ -129,7 +126,8 @@ public class moviem : NetworkBehaviour
     {
         StartCoroutine(nameof(recarga));
     }
-    IEnumerator recarga() {
+    IEnumerator recarga()
+    {
         puedeDisparar = false;
         text_muni.text = municion.ToString();
         yield return new WaitForSeconds(delay * 2);
@@ -140,22 +138,16 @@ public class moviem : NetworkBehaviour
     IEnumerator DisparoCooldown()
     {
         // Espera antes de permitir otro disparo
+        puedeDisparar = false;
         yield return new WaitForSeconds(delay);
         puedeDisparar = true;
     }
-
     bool IsGrounded()
     {
         // Raycast desde el centro hacia abajo
         return Physics.Raycast(transform.position, Vector3.down, 1.1f);
     }
 
-    void Anim(Transform go)
-    {
-        Vector3 v = new Vector3(0, 0, go.transform.localPosition - 1);
-        go.localPosition = Vector3.Lerp(go.transform.localPosition, v, delay * Time.deltaTime);
-        
-    }
     public void Armastates()
     {
         for (int i = 0; i < Armas.Length; i++)

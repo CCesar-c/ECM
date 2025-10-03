@@ -32,6 +32,7 @@ public class moviem : NetworkBehaviour
     }
 
     public Typ typo;
+    public int espelate;
 
     public override void OnStartLocalPlayer()
     {
@@ -153,24 +154,9 @@ public class moviem : NetworkBehaviour
         municion--;
         // Instanciar y sincronizar la bala inmediatamente
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-        b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 100f);
+        b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 1000f);
         NetworkServer.Spawn(b, connectionToClient);
     }
-
-    [Command]
-    void Cmdreload()
-    {
-        StartCoroutine(nameof(recarga));
-    }
-    IEnumerator recarga()
-    {
-        puedeDisparar = false;
-        text_muni.text = municion.ToString();
-        yield return new WaitForSeconds(delay * 2);
-        puedeDisparar = true;
-        municion = 20;
-    }
-
     IEnumerator DisparoCooldown()
     {
         // Espera antes de permitir otro disparo
@@ -178,6 +164,21 @@ public class moviem : NetworkBehaviour
         yield return new WaitForSeconds(delay);
         puedeDisparar = true;
     }
+    [Command]
+    void Cmdreload()
+    {
+        StartCoroutine(recarga());
+    }
+    IEnumerator recarga()
+    {
+        puedeDisparar = false;
+        text_muni.text = municion.ToString();
+        yield return new WaitForSeconds(delay * 2);
+        puedeDisparar = true;
+        municion = espelate;
+    }
+
+
     bool IsGrounded()
     {
         // Raycast desde el centro hacia abajo
@@ -196,27 +197,28 @@ public class moviem : NetworkBehaviour
                         typo = Typ.Manual;
                         damage = 10;
                         municion = 20;
-                        delay = 0.5f;
+                        delay = 1f;
                         break;
                     case 1:
                         typo = Typ.Manual;
                         damage = 100;
                         municion = 5;
-                        delay = 1;
+                        delay = 2;
                         break;
                     case 2:
                         typo = Typ.Automatico;
                         damage = 30;
                         municion = 60;
-                        delay = 0.25f;
+                        delay = 0.5f;
                         break;
                     case 3:
                         typo = Typ.Manual;
                         damage = 200;
                         municion = 5;
-                        delay = 1;
+                        delay = 2;
                         break;
                 }
+                espelate = municion;
             }
         }
     }

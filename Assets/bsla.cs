@@ -5,6 +5,7 @@ using Mirror;
 
 public class bsla : NetworkBehaviour
 {
+    [ServerCallback]
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.GetComponent<moviem>() != null)

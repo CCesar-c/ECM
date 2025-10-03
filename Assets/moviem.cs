@@ -153,8 +153,7 @@ public class moviem : NetworkBehaviour
         municion--;
         // Instanciar y sincronizar la bala inmediatamente
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-        Rigidbody rbBala = b.GetComponent<Rigidbody>();
-        rbBala.velocity = transform.forward * 100f; // más fiable que AddForce para bullets rápidas
+        b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 100f);
         NetworkServer.Spawn(b, connectionToClient);
     }
 

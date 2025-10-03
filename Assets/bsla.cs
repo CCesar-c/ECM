@@ -11,10 +11,12 @@ public class bsla : NetworkBehaviour
         {
             collision.gameObject.GetComponent<moviem>().Vida -= moviem.instance.damage;
             NetworkServer.Destroy(this.gameObject);
+            Destroy(this.gameObject, 5f);
         }
         else
         {
             NetworkServer.Destroy(this.gameObject);
+            Destroy(this.gameObject, 5f);
         }
     }
 }

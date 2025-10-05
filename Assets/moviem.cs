@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using UnityEngine.UI;
-using UnityEngine.Android;
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
@@ -22,7 +21,7 @@ public class moviem : NetworkBehaviour
     public Transform spawn;
     public GameObject bala;
     public GameObject[] Armas;
-
+    public FixedJoystick joystick;
     public bool puedeDisparar = true;
 
     public enum Typ
@@ -52,7 +51,6 @@ public class moviem : NetworkBehaviour
     }
 
 #if UNITY_ANDROID
-    public FixedJoystick joystick;
     private Vector2 lastTouchPos;
     private bool isTouching = false;
 
@@ -103,12 +101,16 @@ public class moviem : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
+
 #if UNITY_ANDROID
-            if (Application.isMobilePlatform)
+            Vector3 sim = transform.forward * joystick.Horizontal + transform.right * joystick.Vertical;
+            this.rb.AddForce(sim.normalized * speed);
+
+            if (Application.isMobilePlatform) //
             {
                 foreach (Transform t in playerCamera.GetComponentsInChildren<Transform>(true))
                 {
-                    if (t.name == "Shoot" || t.name == "Reload" || t.name == "Jump" || t.name == "Panel_camara")
+                    if (t.name == "Shoot" || t.name == "Reload" || t.name == "Jump" || t.name == "Fixed Joystick")
                         t.gameObject.SetActive(true);
                 }
                 if (Input.touchCount > 0)
@@ -212,7 +214,7 @@ public class moviem : NetworkBehaviour
 
             Vector3 move = transform.right * moveX + transform.forward * moveZ;
             Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
-            rb.velocity = newVelocity;
+            rb.velocity = newVelocity * Time.deltaTime;
 
             if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
             {
@@ -222,16 +224,16 @@ public class moviem : NetworkBehaviour
 
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             }
+            /*
+                        // --- Rotación ---
+                        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+                        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-            // --- Rotación ---
-            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+                        xRotation -= mouseY;
+                        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+                        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-            xRotation -= mouseY;
-            xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-            playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-            transform.Rotate(Vector3.up * mouseX);
+                        transform.Rotate(Vector3.up * mouseX);*/
         }
     }
 

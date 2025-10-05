@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using UnityEngine.UI;
-using UnityEngine.SocialPlatforms;
-
+using UnityEngine.Android;
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
@@ -23,6 +22,7 @@ public class moviem : NetworkBehaviour
     public Transform spawn;
     public GameObject bala;
     public GameObject[] Armas;
+
     public bool puedeDisparar = true;
 
     public enum Typ
@@ -42,16 +42,103 @@ public class moviem : NetworkBehaviour
 
     void Start()
     {
+#if UNITY_ANDROID
+        Debug.Log("esto es solo para android");
+#endif
         Armastates();
         puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
         instance = GetComponent<moviem>();
     }
 
+#if UNITY_ANDROID
+    public FixedJoystick joystick;
+    private Vector2 lastTouchPos;
+    private bool isTouching = false;
+
+    public void Atirar()
+    {
+        puedeDisparar = true;
+        if (typo == Typ.Automatico)
+        {
+            if (puedeDisparar && municion > 0)
+            {
+                StartCoroutine(DisparoCooldown());
+                CmdCrearBala();
+            }
+        }
+        else if (typo == Typ.Manual)
+        {
+            if (puedeDisparar && municion > 0)
+            {
+                StartCoroutine(DisparoCooldown());
+                CmdCrearBala();
+            }
+        }
+    }
+    public void DesAtirar()
+    {
+        puedeDisparar = false;
+    }
+    public void Recaregar()
+    {
+        if (municion >= 0)
+        {
+            Cmdreload();
+        }
+    }
+    public void Pular()
+    {
+        if (IsGrounded())
+        {
+            Vector3 vel = rb.velocity;
+            vel.y = 0; // resetea la velocidad vertical para saltar limpio
+            rb.velocity = vel;
+
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        }
+    }
+#endif
     void Update()
     {
         if (isLocalPlayer)
         {
+#if UNITY_ANDROID
+            if (Application.isMobilePlatform)
+            {
+                foreach (Transform t in playerCamera.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name == "Shoot" || t.name == "Reload" || t.name == "Jump" || t.name == "Panel_camara")
+                        t.gameObject.SetActive(true);
+                }
+                if (Input.touchCount > 0)
+                {
+                    Touch touch = Input.GetTouch(0);
+
+                    if (touch.phase == TouchPhase.Began)
+                    {
+                        lastTouchPos = touch.position;
+                        isTouching = true;
+                    }
+                    else if (touch.phase == TouchPhase.Moved && isTouching)
+                    {
+                        Vector2 delta = touch.position - lastTouchPos;
+
+                        transform.Rotate(Vector3.up * delta.x);
+
+                        // ROTACIÓN VERTICAL (X) limitada
+                        xRotation -= delta.y;
+                        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+                        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+                    }
+                    else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                    {
+                        isTouching = false;
+                    }
+                }
+
+            }
+#endif
             text_muni.text = municion.ToString();
             // --- Barra de vida ---
             bar.value = Vida;
@@ -148,13 +235,18 @@ public class moviem : NetworkBehaviour
         }
     }
 
+
+
     [Command]
     void CmdCrearBala()
     {
         municion--;
-        // Instanciar y sincronizar la bala inmediatamente
+
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-        b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 1000f);
+
+        b.GetComponent<Rigidbody>().velocity = spawn.transform.forward * 50f;
+        //b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 10000f);
+
         NetworkServer.Spawn(b, connectionToClient);
     }
     IEnumerator DisparoCooldown()
@@ -167,9 +259,9 @@ public class moviem : NetworkBehaviour
     [Command]
     void Cmdreload()
     {
-        StartCoroutine(recarga());
+        StartCoroutine(Recarga());
     }
-    IEnumerator recarga()
+    IEnumerator Recarga()
     {
         puedeDisparar = false;
         text_muni.text = municion.ToString();

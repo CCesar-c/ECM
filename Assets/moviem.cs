@@ -224,16 +224,16 @@ public class moviem : NetworkBehaviour
 
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             }
-            /*
-                        // --- Rotación ---
-                        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-                        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-                        xRotation -= mouseY;
-                        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-                        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            // --- Rotación ---
+            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-                        transform.Rotate(Vector3.up * mouseX);*/
+            xRotation -= mouseY;
+            xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+            playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+            transform.Rotate(Vector3.up * mouseX);
         }
     }
 

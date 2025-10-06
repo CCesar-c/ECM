@@ -41,19 +41,21 @@ public class moviem : NetworkBehaviour
 
     void Start()
     {
-#if UNITY_ANDROID
-        Debug.Log("esto es solo para android");
-#endif
-        Armastates();
+        Armastates(0);
         puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
         instance = GetComponent<moviem>();
     }
 
 #if UNITY_ANDROID
-    private Vector2 lastTouchPos;
-    private bool isTouching = false;
-
+    int i;
+    public void ChangeArma()
+    {
+        i++;
+        if (i > 3)
+            i = 0;
+        Armastates(i);
+    }
     public void Atirar()
     {
         puedeDisparar = true;
@@ -97,50 +99,27 @@ public class moviem : NetworkBehaviour
         }
     }
 #endif
+    Vector3 posicionInicial;
+    Vector3 posicionObjetivo;
+
     void Update()
     {
         if (isLocalPlayer)
         {
 
-#if UNITY_ANDROID
-            Vector3 sim = transform.forward * joystick.Horizontal + transform.right * joystick.Vertical;
-            this.rb.AddForce(sim.normalized * speed);
-
-            if (Application.isMobilePlatform) //
+            if (Application.platform == RuntimePlatform.Android) //
             {
-                foreach (Transform t in playerCamera.GetComponentsInChildren<Transform>(true))
+                Vector3 sim = transform.forward * joystick.Vertical + transform.right * joystick.Horizontal;
+                rb.AddForce(sim.normalized * speed);
+                Transform[] arrey = GetComponentsInChildren<Transform>();
+                for (int i = 0; i < arrey.Length; i++)
                 {
-                    if (t.name == "Shoot" || t.name == "Reload" || t.name == "Jump" || t.name == "Fixed Joystick")
-                        t.gameObject.SetActive(true);
-                }
-                if (Input.touchCount > 0)
-                {
-                    Touch touch = Input.GetTouch(0);
-
-                    if (touch.phase == TouchPhase.Began)
+                    if (arrey[i].name == "Controls_Mobile")
                     {
-                        lastTouchPos = touch.position;
-                        isTouching = true;
-                    }
-                    else if (touch.phase == TouchPhase.Moved && isTouching)
-                    {
-                        Vector2 delta = touch.position - lastTouchPos;
-
-                        transform.Rotate(Vector3.up * delta.x);
-
-                        // ROTACIÓN VERTICAL (X) limitada
-                        xRotation -= delta.y;
-                        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-                        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-                    }
-                    else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-                    {
-                        isTouching = false;
+                        arrey[i].gameObject.SetActive(true);
                     }
                 }
-
             }
-#endif
             text_muni.text = municion.ToString();
             // --- Barra de vida ---
             bar.value = Vida;
@@ -149,108 +128,111 @@ public class moviem : NetworkBehaviour
                 NetworkServer.Destroy(gameObject);
                 return;
             }
-            if (Input.GetKeyDown(KeyCode.R) && municion >= 0)
-            {
-                Cmdreload();
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha0))
-            {
 
-                for (int i = 0; i < Armas.Length; i++)
-                {
-                    Armas[i].SetActive(false);
-                }
-                Armas[0].SetActive(true);
-                Armastates();
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            for (int i = 0; i < Armas.Length; i++)
             {
-                for (int i = 0; i < Armas.Length; i++)
+                posicionInicial = Armas[i].transform.localPosition;
+                posicionObjetivo = new Vector3(Armas[i].transform.localPosition.x, Armas[i].transform.localPosition.y, Armas[i].transform.localPosition.z - 1);
+                if (puedeDisparar)
                 {
-                    Armas[i].SetActive(false);
+                    Armas[i].transform.localPosition = Vector3.Lerp(
+                        posicionInicial,
+                        posicionObjetivo,
+                        1f * Time.deltaTime
+                    );
                 }
-                Armas[1].SetActive(true);
-                Armastates();
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                for (int i = 0; i < Armas.Length; i++)
+                else
                 {
-                    Armas[i].SetActive(false);
-                }
-                Armas[2].SetActive(true);
-                Armastates();
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                for (int i = 0; i < Armas.Length; i++)
-                {
-                    Armas[i].SetActive(false);
-                }
-                Armas[3].SetActive(true);
-                Armastates();
-            }
-            // --- Disparo ---
-            if (typo == Typ.Automatico)
-            {
-                if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
-                {
-                    StartCoroutine(DisparoCooldown());
-                    CmdCrearBala();
-                }
-            }
-            else if (typo == Typ.Manual)
-            {
-                if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
-                {
-                    StartCoroutine(DisparoCooldown());
-                    CmdCrearBala();
+                    Armas[i].transform.localPosition = Vector3.Lerp(
+                        posicionObjetivo,
+                        posicionInicial,
+                        1f * Time.deltaTime
+                    );
                 }
             }
 
-            // --- Movimiento ---
-            float moveX = Input.GetAxis("Horizontal");
-            float moveZ = Input.GetAxis("Vertical");
 
-            Vector3 move = transform.right * moveX + transform.forward * moveZ;
-            Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
-            rb.velocity = newVelocity * Time.deltaTime;
-
-            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
+            // PC
+            if (Application.platform != RuntimePlatform.Android)
             {
-                Vector3 vel = rb.velocity;
-                vel.y = 0; // resetea la velocidad vertical para saltar limpio
-                rb.velocity = vel;
+                if (Input.GetKeyDown(KeyCode.R) && municion >= 0)
+                {
+                    Cmdreload();
+                }
 
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                // --- Disparo ---
+                if (typo == Typ.Automatico)
+                {
+                    if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
+                    {
+                        StartCoroutine(DisparoCooldown());
+                        CmdCrearBala();
+                    }
+                }
+                else if (typo == Typ.Manual)
+                {
+                    if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
+                    {
+                        StartCoroutine(DisparoCooldown());
+                        CmdCrearBala();
+                    }
+                }
+
+                if (Input.GetKeyDown(KeyCode.Q))
+                {
+                    i++;
+                    if (i > 3)
+                        i = 0;
+                    Armastates(i);
+                }
+
+                // --- Movimiento ---
+                float moveX = Input.GetAxis("Horizontal");
+                float moveZ = Input.GetAxis("Vertical");
+
+                Vector3 move = transform.right * moveX + transform.forward * moveZ;
+                Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
+                rb.velocity = newVelocity * Time.deltaTime;
+
+                if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
+                {
+                    Vector3 vel = rb.velocity;
+                    vel.y = 0; // resetea la velocidad vertical para saltar limpio
+                    rb.velocity = vel;
+
+                    rb.AddForce(Vector3.up * jumpForce);
+                }
+
+                // --- Rotación ---
+                float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+                float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+                xRotation -= mouseY;
+                xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+                playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+                transform.Rotate(Vector3.up * mouseX);
             }
-
-            // --- Rotación ---
-            float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-            float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-            xRotation -= mouseY;
-            xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-            playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-            transform.Rotate(Vector3.up * mouseX);
         }
     }
-
+    bool IsGrounded()
+    {
+        // Raycast desde el centro hacia abajo
+        return Physics.Raycast(transform.position, Vector3.down, 1.1f);
+    }
 
 
     [Command]
     void CmdCrearBala()
     {
         municion--;
-
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
-
         b.GetComponent<Rigidbody>().velocity = spawn.transform.forward * 50f;
         //b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 10000f);
 
         NetworkServer.Spawn(b, connectionToClient);
     }
+
     IEnumerator DisparoCooldown()
     {
         // Espera antes de permitir otro disparo
@@ -272,48 +254,56 @@ public class moviem : NetworkBehaviour
         municion = espelate;
     }
 
-
-    bool IsGrounded()
+    public void Armastates(int i)
     {
-        // Raycast desde el centro hacia abajo
-        return Physics.Raycast(transform.position, Vector3.down, 1.1f);
-    }
 
-    public void Armastates()
-    {
-        for (int i = 0; i < Armas.Length; i++)
+        switch (i)
         {
-            if (Armas[i].activeInHierarchy)
-            {
-                switch (i)
+            case 0:
+                typo = Typ.Manual;
+                damage = 10;
+                municion = 20;
+                delay = 1f;
+                for (int a = 0; a < 4; a++)
                 {
-                    case 0:
-                        typo = Typ.Manual;
-                        damage = 10;
-                        municion = 20;
-                        delay = 1f;
-                        break;
-                    case 1:
-                        typo = Typ.Manual;
-                        damage = 100;
-                        municion = 5;
-                        delay = 2;
-                        break;
-                    case 2:
-                        typo = Typ.Automatico;
-                        damage = 30;
-                        municion = 60;
-                        delay = 0.5f;
-                        break;
-                    case 3:
-                        typo = Typ.Manual;
-                        damage = 200;
-                        municion = 5;
-                        delay = 2;
-                        break;
+                    Armas[a].SetActive(false);
                 }
-                espelate = municion;
-            }
+                Armas[0].SetActive(true);
+                break;
+            case 1:
+                typo = Typ.Manual;
+                damage = 100;
+                municion = 5;
+                delay = 2;
+                for (int a = 0; a < 4; a++)
+                {
+                    Armas[a].SetActive(false);
+                }
+                Armas[1].SetActive(true);
+                break;
+            case 2:
+                typo = Typ.Automatico;
+                damage = 30;
+                municion = 60;
+                delay = 0.5f;
+                for (int a = 0; a < 4; a++)
+                {
+                    Armas[a].SetActive(false);
+                }
+                Armas[2].SetActive(true);
+                break;
+            case 3:
+                typo = Typ.Manual;
+                damage = 200;
+                municion = 5;
+                delay = 2;
+                for (int a = 0; a < 4; a++)
+                {
+                    Armas[a].SetActive(false);
+                }
+                Armas[3].SetActive(true);
+                break;
         }
+        espelate = municion;
     }
 }

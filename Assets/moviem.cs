@@ -125,7 +125,7 @@ public class moviem : NetworkBehaviour
             bar.value = Vida;
             if (Vida <= 0)
             {
-                NetworkServer.Destroy(gameObject);
+                //NetworkServer.Destroy(gameObject);
                 return;
             }
 

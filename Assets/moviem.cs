@@ -106,8 +106,8 @@ public class moviem : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-
-            if (Application.platform == RuntimePlatform.Android) //
+            //celular
+            if (Application.platform == RuntimePlatform.Android)
             {
                 Vector3 sim = transform.forward * joystick.Vertical + transform.right * joystick.Horizontal;
                 rb.AddForce(sim.normalized * speed);
@@ -150,7 +150,6 @@ public class moviem : NetworkBehaviour
                     );
                 }
             }
-
 
             // PC
             if (Application.platform != RuntimePlatform.Android)

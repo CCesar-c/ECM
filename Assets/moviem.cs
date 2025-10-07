@@ -38,9 +38,13 @@ public class moviem : NetworkBehaviour
         // Activar solo la cámara del jugador local
         playerCamera.gameObject.SetActive(true);
     }
-
+    public Vector3 posInicial;
     void Start()
     {
+        for (int i = 0; i < Armas.Length; i++)
+        {
+            Vector3 posInicial = Armas[i].transform.localPosition;
+        }
         Armastates(0);
         puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
@@ -63,6 +67,7 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
+                Disparar();
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -71,6 +76,7 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
+                Disparar();
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -102,7 +108,6 @@ public class moviem : NetworkBehaviour
     public Vector3 retroceso = new Vector3(0, 0, -0.3f); // cuánto se mueve hacia atrás
     public float velocidad = 10f;   // velocidad del movimiento
 
-    private Vector3 posInicial;
     private float t;                // interpolador
     private bool haciaAtras;
     void Update()
@@ -134,7 +139,8 @@ public class moviem : NetworkBehaviour
             }
             for (int i = 0; i < Armas.Length; i++)
             {
-                if (Armas[i].activeInHierarchy == false) return;
+
+                //if (Armas[i].activeInHierarchy == false) return;
                 if (haciaAtras)
                 {
                     t += Time.deltaTime * velocidad;
@@ -165,6 +171,7 @@ public class moviem : NetworkBehaviour
                 {
                     if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                     {
+                        Disparar();
                         StartCoroutine(DisparoCooldown());
                         CmdCrearBala();
                     }
@@ -173,6 +180,7 @@ public class moviem : NetworkBehaviour
                 {
                     if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                     {
+                        Disparar();
                         StartCoroutine(DisparoCooldown());
                         CmdCrearBala();
                     }

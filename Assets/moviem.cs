@@ -38,13 +38,9 @@ public class moviem : NetworkBehaviour
         // Activar solo la cámara del jugador local
         playerCamera.gameObject.SetActive(true);
     }
-    public Vector3 posInicial;
+
     void Start()
     {
-        for (int i = 0; i < Armas.Length; i++)
-        {
-            Vector3 posInicial = Armas[i].transform.localPosition;
-        }
         Armastates(0);
         puedeDisparar = true;
         rb = GetComponent<Rigidbody>();
@@ -105,6 +101,7 @@ public class moviem : NetworkBehaviour
         }
     }
 #endif
+    public Vector3 posInicial = new Vector3(0.6f, 0.1f, 0.9f);
     public Vector3 retroceso = new Vector3(0, 0, -0.3f); // cuánto se mueve hacia atrás
     public float velocidad = 10f;   // velocidad del movimiento
 

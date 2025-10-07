@@ -99,9 +99,12 @@ public class moviem : NetworkBehaviour
         }
     }
 #endif
-    Vector3 posicionInicial;
-    Vector3 posicionObjetivo;
+    public Vector3 retroceso = new Vector3(0, 0, -0.3f); // cuánto se mueve hacia atrás
+    public float velocidad = 10f;   // velocidad del movimiento
 
+    private Vector3 posInicial;
+    private float t;                // interpolador
+    private bool haciaAtras;
     void Update()
     {
         if (isLocalPlayer)
@@ -125,32 +128,30 @@ public class moviem : NetworkBehaviour
             bar.value = Vida;
             if (Vida <= 0)
             {
+                text_muni.text = "Game Over";
                 //NetworkServer.Destroy(gameObject);
                 return;
             }
-
             for (int i = 0; i < Armas.Length; i++)
             {
-                posicionInicial = Armas[i].transform.localPosition;
-                posicionObjetivo = new Vector3(Armas[i].transform.localPosition.x, Armas[i].transform.localPosition.y, Armas[i].transform.localPosition.z - 1);
-                if (puedeDisparar)
+                if (Armas[i].activeInHierarchy == false) return;
+                if (haciaAtras)
                 {
-                    Armas[i].transform.localPosition = Vector3.Lerp(
-                        posicionInicial,
-                        posicionObjetivo,
-                        1f * Time.deltaTime
-                    );
+                    t += Time.deltaTime * velocidad;
+                    Armas[i].transform.localPosition = Vector3.Lerp(posInicial, posInicial + retroceso, t);
+
+                    if (t >= 1f)
+                    {
+                        haciaAtras = false;
+                        t = 0f; // reinicia para volver
+                    }
                 }
-                else
+                else if (Armas[i].transform.localPosition != posInicial) // volver a la posición inicial
                 {
-                    Armas[i].transform.localPosition = Vector3.Lerp(
-                        posicionObjetivo,
-                        posicionInicial,
-                        1f * Time.deltaTime
-                    );
+                    t += Time.deltaTime * velocidad;
+                    Armas[i].transform.localPosition = Vector3.Lerp(posInicial + retroceso, posInicial, t);
                 }
             }
-
             // PC
             if (Application.platform != RuntimePlatform.Android)
             {
@@ -224,12 +225,20 @@ public class moviem : NetworkBehaviour
     [Command]
     void CmdCrearBala()
     {
+
         municion--;
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
         b.GetComponent<Rigidbody>().velocity = spawn.transform.forward * 50f;
         //b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 10000f);
 
         NetworkServer.Spawn(b, connectionToClient);
+    }
+
+    void Disparar()
+    {
+        haciaAtras = true;
+        t = 0f;
+        Debug.Log("¡Bang!");
     }
 
     IEnumerator DisparoCooldown()

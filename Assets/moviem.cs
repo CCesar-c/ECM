@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
+    public GameObject armaObject;
     public Text text_muni;
     public Slider bar;
     [SyncVar] public int Vida = 200;
@@ -23,7 +24,8 @@ public class moviem : NetworkBehaviour
     public GameObject[] Armas;
     public FixedJoystick joystick;
     public bool puedeDisparar = true;
-
+    public bool puedeMirar = false;
+    public int i;
     public enum Typ
     {
         Automatico,
@@ -37,6 +39,7 @@ public class moviem : NetworkBehaviour
     {
         // Activar solo la cámara del jugador local
         playerCamera.gameObject.SetActive(true);
+        armaObject.gameObject.SetActive(true);
     }
 
     void Start()
@@ -48,7 +51,7 @@ public class moviem : NetworkBehaviour
     }
 
 #if UNITY_ANDROID
-    int i;
+
     public void ChangeArma()
     {
         i++;
@@ -102,10 +105,10 @@ public class moviem : NetworkBehaviour
     }
 #endif
     public Vector3 posInicial = new Vector3(0.6f, 0.1f, 0.9f);
-    public Vector3 retroceso = new Vector3(0, 0, -0.3f); // cuánto se mueve hacia atrás
-    public float velocidad = 10f;   // velocidad del movimiento
+    public Vector3 retroceso = new Vector3(0, 0, -0.3f);
+    public float velocidad = 10f;
 
-    private float t;                // interpolador
+    private float t;
     private bool haciaAtras;
     void Update()
     {
@@ -155,6 +158,21 @@ public class moviem : NetworkBehaviour
                     Armas[i].transform.localPosition = Vector3.Lerp(posInicial + retroceso, posInicial, t);
                 }
             }
+            for (int i = 0; i < Armas.Length; i++)
+            {
+                Vector3 a = new Vector3(0f, -0.1f, 1f);
+                Vector3 b = new Vector3(0.6f, 0.1f, 1f);
+                if (puedeMirar)
+                {
+                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 40, 1f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, a, 10f * Time.deltaTime);
+                }
+                else
+                {
+                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 1f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, b, 10f * Time.deltaTime);
+                }
+            }
             // PC
             if (Application.platform != RuntimePlatform.Android)
             {
@@ -163,6 +181,14 @@ public class moviem : NetworkBehaviour
                     Cmdreload();
                 }
 
+                if (Input.GetKey(KeyCode.Mouse1))
+                {
+                    puedeMirar = true;
+                }
+                if (Input.GetKeyUp(KeyCode.Mouse1))
+                {
+                    puedeMirar = false;
+                }
                 // --- Disparo ---
                 if (typo == Typ.Automatico)
                 {
@@ -197,9 +223,9 @@ public class moviem : NetworkBehaviour
 
                 Vector3 move = transform.right * moveX + transform.forward * moveZ;
                 Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
-                rb.velocity = newVelocity * Time.deltaTime;
+                rb.velocity = newVelocity;
 
-                if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
+                if (Input.GetKey(KeyCode.Space) && IsGrounded())
                 {
                     Vector3 vel = rb.velocity;
                     vel.y = 0; // resetea la velocidad vertical para saltar limpio
@@ -226,11 +252,9 @@ public class moviem : NetworkBehaviour
         return Physics.Raycast(transform.position, Vector3.down, 1.1f);
     }
 
-
     [Command]
     void CmdCrearBala()
     {
-
         municion--;
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
         b.GetComponent<Rigidbody>().velocity = spawn.transform.forward * 50f;
@@ -243,7 +267,6 @@ public class moviem : NetworkBehaviour
     {
         haciaAtras = true;
         t = 0f;
-        Debug.Log("¡Bang!");
     }
 
     IEnumerator DisparoCooldown()

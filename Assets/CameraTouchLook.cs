@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-#if UNITY_ANDROID
+
 public class CameraTouchLook : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
     public float sensitivity = 2f;
@@ -37,4 +37,3 @@ public class CameraTouchLook : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         moviem.instance.playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 }
-#endif

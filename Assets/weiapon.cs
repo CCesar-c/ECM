@@ -1,12 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using UnityEngine;
 
-public class weiapon : MonoBehaviour
+public class weiapon : NetworkBehaviour
 {
 
     void Update()
     {
-        transform.rotation = moviem.instance.playerCamera.transform.rotation;
+        if (isLocalPlayer)
+        {
+            transform.rotation = moviem.instance.playerCamera.transform.rotation;
+        }
     }
 }

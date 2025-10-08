@@ -305,7 +305,7 @@ public class moviem : NetworkBehaviour
                 damage = 10;
                 municion = 20;
                 delay = 1f;
-                forca = 1;
+                forca = 2;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -317,7 +317,7 @@ public class moviem : NetworkBehaviour
                 damage = 100;
                 municion = 5;
                 delay = 2;
-                forca = 3;
+                forca = 4;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -341,7 +341,7 @@ public class moviem : NetworkBehaviour
                 damage = 200;
                 municion = 5;
                 delay = 2;
-                forca = 5;
+                forca = 10;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);

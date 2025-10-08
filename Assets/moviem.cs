@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class moviem : NetworkBehaviour
 {
     public static moviem instance;
-    public GameObject armaObject;
     public Text text_muni;
     public Slider bar;
     [SyncVar] public int Vida = 200;
@@ -39,7 +38,6 @@ public class moviem : NetworkBehaviour
     {
         // Activar solo la cámara del jugador local
         playerCamera.gameObject.SetActive(true);
-        armaObject.gameObject.SetActive(true);
     }
 
     void Start()
@@ -110,6 +108,10 @@ public class moviem : NetworkBehaviour
 
     private float t;
     private bool haciaAtras;
+    void Awake()
+    {
+        instance = GetComponent<moviem>();
+    }
     void Update()
     {
         if (isLocalPlayer)
@@ -161,18 +163,20 @@ public class moviem : NetworkBehaviour
             for (int i = 0; i < Armas.Length; i++)
             {
                 Vector3 a = new Vector3(0f, -0.1f, 1f);
-                Vector3 b = new Vector3(0.6f, 0.1f, 1f);
+                Vector3 b = new Vector3(0.6f, -0.2f, 1f);
+
                 if (puedeMirar)
                 {
-                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 40, 1f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, a, 10f * Time.deltaTime);
+                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 40, 5f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, a, 50f * Time.deltaTime);
                 }
                 else
                 {
-                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 1f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, b, 10f * Time.deltaTime);
+                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 5f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, b, 50f * Time.deltaTime);
                 }
             }
+
             // PC
             if (Application.platform != RuntimePlatform.Android)
             {

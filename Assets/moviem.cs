@@ -163,7 +163,7 @@ public class moviem : NetworkBehaviour
             for (int i = 0; i < Armas.Length; i++)
             {
                 Vector3 a = new Vector3(0f, -0.1f, 1f);
-                Vector3 b = new Vector3(0.6f, -0.2f, 1f);
+                Vector3 b = new Vector3(0.6f, -0.2f, 1.1f);
 
                 if (puedeMirar)
                 {

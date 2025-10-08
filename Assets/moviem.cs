@@ -24,7 +24,7 @@ public class moviem : NetworkBehaviour
     public FixedJoystick joystick;
     public bool puedeDisparar = true;
     public bool puedeMirar = false;
-    public int i;
+    int i;
     public enum Typ
     {
         Automatico,
@@ -64,7 +64,11 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
-                Disparar();
+                        if (puedeDisparar)
+                        {
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                        }
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -73,7 +77,11 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
-                Disparar();
+                                        if (puedeDisparar)
+                        {
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                        }
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -102,16 +110,12 @@ public class moviem : NetworkBehaviour
         }
     }
 #endif
-    public Vector3 posInicial = new Vector3(0.6f, 0.1f, 0.9f);
-    public Vector3 retroceso = new Vector3(0, 0, -0.3f);
-    public float velocidad = 10f;
 
-    private float t;
-    private bool haciaAtras;
-    void Awake()
-    {
-        instance = GetComponent<moviem>();
-    }
+    Vector3 posInicial = new Vector3(0.6f, -0.3f, 1.1f);
+    Vector3 retroceso = new Vector3(0, 0, -1f);
+    Vector3 a = new Vector3(0f, -0.2f, 1f);
+    float forca;
+    float targetRecoil;
     void Update()
     {
         if (isLocalPlayer)
@@ -139,42 +143,17 @@ public class moviem : NetworkBehaviour
                 //NetworkServer.Destroy(gameObject);
                 return;
             }
-            for (int i = 0; i < Armas.Length; i++)
+            if (puedeMirar)
             {
-
-                //if (Armas[i].activeInHierarchy == false) return;
-                if (haciaAtras)
-                {
-                    t += Time.deltaTime * velocidad;
-                    Armas[i].transform.localPosition = Vector3.Lerp(posInicial, posInicial + retroceso, t);
-
-                    if (t >= 1f)
-                    {
-                        haciaAtras = false;
-                        t = 0f; // reinicia para volver
-                    }
-                }
-                else if (Armas[i].transform.localPosition != posInicial) // volver a la posición inicial
-                {
-                    t += Time.deltaTime * velocidad;
-                    Armas[i].transform.localPosition = Vector3.Lerp(posInicial + retroceso, posInicial, t);
-                }
+                // Modo apuntando
+                playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 30, 5f * Time.deltaTime);
+                Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, a, 10f * Time.deltaTime);
             }
-            for (int i = 0; i < Armas.Length; i++)
+            else
             {
-                Vector3 a = new Vector3(0f, -0.1f, 1f);
-                Vector3 b = new Vector3(0.6f, -0.2f, 1.1f);
-
-                if (puedeMirar)
-                {
-                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 40, 5f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, a, 50f * Time.deltaTime);
-                }
-                else
-                {
-                    playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 5f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, b, 50f * Time.deltaTime);
-                }
+                // Modo normal
+                playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 5f * Time.deltaTime);
+                Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, posInicial, 10f * Time.deltaTime);
             }
 
             // PC
@@ -193,12 +172,25 @@ public class moviem : NetworkBehaviour
                 {
                     puedeMirar = false;
                 }
+                if (!puedeMirar)
+                {
+                    targetRecoil = 0f;
+                }
                 // --- Disparo ---
                 if (typo == Typ.Automatico)
                 {
                     if (Input.GetKey(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                     {
-                        Disparar();
+                        if (puedeDisparar)
+                        {
+                            targetRecoil += forca;
+                            targetRecoil = Mathf.Clamp(targetRecoil, 0f, forca + 10);
+
+                            // vuelve lentamente a 0 cuando no dispara
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                        }
+
                         StartCoroutine(DisparoCooldown());
                         CmdCrearBala();
                     }
@@ -207,7 +199,16 @@ public class moviem : NetworkBehaviour
                 {
                     if (Input.GetKeyDown(KeyCode.Mouse0) && puedeDisparar && municion > 0)
                     {
-                        Disparar();
+                        if (puedeDisparar)
+                        {
+                            targetRecoil += forca;
+                            targetRecoil = Mathf.Clamp(targetRecoil, 0f, forca + 10);
+
+                            // vuelve lentamente a 0 cuando no dispara
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                        }
+
                         StartCoroutine(DisparoCooldown());
                         CmdCrearBala();
                     }
@@ -229,12 +230,8 @@ public class moviem : NetworkBehaviour
                 Vector3 newVelocity = new Vector3(move.x * speed, rb.velocity.y, move.z * speed);
                 rb.velocity = newVelocity;
 
-                if (Input.GetKey(KeyCode.Space) && IsGrounded())
+                if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
                 {
-                    Vector3 vel = rb.velocity;
-                    vel.y = 0; // resetea la velocidad vertical para saltar limpio
-                    rb.velocity = vel;
-
                     rb.AddForce(Vector3.up * jumpForce);
                 }
 
@@ -244,7 +241,7 @@ public class moviem : NetworkBehaviour
 
                 xRotation -= mouseY;
                 xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-                playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+                playerCamera.transform.localRotation = Quaternion.Euler(xRotation - targetRecoil, 0f, 0f);
 
                 transform.Rotate(Vector3.up * mouseX);
             }
@@ -252,7 +249,6 @@ public class moviem : NetworkBehaviour
     }
     bool IsGrounded()
     {
-        // Raycast desde el centro hacia abajo
         return Physics.Raycast(transform.position, Vector3.down, 1.1f);
     }
 
@@ -262,20 +258,11 @@ public class moviem : NetworkBehaviour
         municion--;
         GameObject b = Instantiate(bala, spawn.position, spawn.rotation);
         b.GetComponent<Rigidbody>().velocity = spawn.transform.forward * 50f;
-        //b.GetComponent<Rigidbody>().AddForce(spawn.transform.forward * 10000f);
-
         NetworkServer.Spawn(b, connectionToClient);
-    }
-
-    void Disparar()
-    {
-        haciaAtras = true;
-        t = 0f;
     }
 
     IEnumerator DisparoCooldown()
     {
-        // Espera antes de permitir otro disparo
         puedeDisparar = false;
         yield return new WaitForSeconds(delay);
         puedeDisparar = true;
@@ -288,15 +275,29 @@ public class moviem : NetworkBehaviour
     IEnumerator Recarga()
     {
         puedeDisparar = false;
-        text_muni.text = municion.ToString();
         yield return new WaitForSeconds(delay * 2);
         puedeDisparar = true;
-        municion = espelate;
+
+        switch (i)
+        {
+            case 0:
+                municion = 20;
+                break;
+            case 1:
+                municion = 5;
+                break;
+            case 2:
+                municion = 60;
+                break;
+            case 3:
+                municion = 5;
+                break;
+        }
+        targetRecoil = 0;
     }
 
     public void Armastates(int i)
     {
-
         switch (i)
         {
             case 0:
@@ -304,6 +305,7 @@ public class moviem : NetworkBehaviour
                 damage = 10;
                 municion = 20;
                 delay = 1f;
+                forca = 1;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -315,6 +317,7 @@ public class moviem : NetworkBehaviour
                 damage = 100;
                 municion = 5;
                 delay = 2;
+                forca = 3;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -325,7 +328,8 @@ public class moviem : NetworkBehaviour
                 typo = Typ.Automatico;
                 damage = 30;
                 municion = 60;
-                delay = 0.5f;
+                delay = 0.125f;
+                forca = 0.5f;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -337,6 +341,7 @@ public class moviem : NetworkBehaviour
                 damage = 200;
                 municion = 5;
                 delay = 2;
+                forca = 5;
                 for (int a = 0; a < 4; a++)
                 {
                     Armas[a].SetActive(false);
@@ -344,6 +349,5 @@ public class moviem : NetworkBehaviour
                 Armas[3].SetActive(true);
                 break;
         }
-        espelate = municion;
     }
 }

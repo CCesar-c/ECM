@@ -197,7 +197,6 @@ public class moviem : NetworkBehaviour
                         if (puedeDisparar)
                         {
                             targetRecoil += forca;
-                            targetRecoil = Mathf.Clamp(targetRecoil, 0f, forca + 10);
 
                             // vuelve lentamente a 0 cuando no dispara
                             Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
@@ -215,7 +214,6 @@ public class moviem : NetworkBehaviour
                         if (puedeDisparar)
                         {
                             targetRecoil += forca;
-                            targetRecoil = Mathf.Clamp(targetRecoil, 0f, forca + 10);
 
                             // vuelve lentamente a 0 cuando no dispara
                             Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);

@@ -5,6 +5,7 @@ using Mirror;
 using UnityEngine.UI;
 public class moviem : NetworkBehaviour
 {
+    public GameObject menu;
     public static moviem instance;
     public Text text_muni;
     public Slider bar;
@@ -64,11 +65,11 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
-                        if (puedeDisparar)
-                        {
-                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
-                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
-                        }
+                if (puedeDisparar)
+                {
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                }
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -77,11 +78,11 @@ public class moviem : NetworkBehaviour
         {
             if (puedeDisparar && municion > 0)
             {
-                                        if (puedeDisparar)
-                        {
-                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
-                            Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
-                        }
+                if (puedeDisparar)
+                {
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
+                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
+                }
                 StartCoroutine(DisparoCooldown());
                 CmdCrearBala();
             }
@@ -168,14 +169,26 @@ public class moviem : NetworkBehaviour
                 {
                     puedeMirar = true;
                 }
+
                 if (Input.GetKeyUp(KeyCode.Mouse1))
                 {
                     puedeMirar = false;
                 }
+
                 if (!puedeMirar)
                 {
                     targetRecoil = 0f;
                 }
+
+                if (Input.GetKey(KeyCode.Escape))
+                {
+                    menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(1, 1, 1), 1f * Time.deltaTime);
+                }
+                else if (menu.transform.localScale != new Vector3(0, 0, 0))
+                {
+                    menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(0, 0, 0), 1f * Time.deltaTime);
+                }
+
                 // --- Disparo ---
                 if (typo == Typ.Automatico)
                 {

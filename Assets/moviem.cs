@@ -5,26 +5,46 @@ using Mirror;
 using UnityEngine.UI;
 public class moviem : NetworkBehaviour
 {
-    public GameObject menu;
     public static moviem instance;
+
+    [Space(10)]
+    [Header("Menus")]
+    public Slider slider_sensi;
+    public Dropdown dropFps;
+    public GameObject menu;
+
+    [Space(10)]
+    [Header("UI")]
     public Text text_muni;
     public Slider bar;
+
+    [Space(10)]
+    [Header("Estadísticas del Jugador")]
     [SyncVar] public int Vida = 200;
+    [SyncVar] public int municion;
+    [SyncVar] public float delay = 2f;
+    public int damage;
+
+    [Space(10)]
+    [Header("Movimiento")]
     public float speed = 5f;
     public float jumpForce = 5f;
     private Rigidbody rb;
+    public FixedJoystick joystick;
+
+    [Space(10)]
+    [Header("Cámara")]
     public Camera playerCamera;
+    public float mouseSensitivity;
     private float xRotation = 0f;
-    public float mouseSensitivity = 100;
-    public int damage;
-    [SyncVar] public int municion;
-    [SyncVar] public float delay = 2f;
+    public bool puedeMirar = false;
+
+    [Space(10)]
+    [Header("Armas")]
+    public GameObject[] Armas;
     public Transform spawn;
     public GameObject bala;
-    public GameObject[] Armas;
-    public FixedJoystick joystick;
     public bool puedeDisparar = true;
-    public bool puedeMirar = false;
     int i;
     public enum Typ
     {
@@ -58,6 +78,16 @@ public class moviem : NetworkBehaviour
             i = 0;
         Armastates(i);
     }
+
+    public void Mirar()
+    {
+        puedeMirar = true;
+    }
+    public void DesMirar()
+    {
+        puedeMirar = false;
+    }
+
     public void Atirar()
     {
         puedeDisparar = true;
@@ -107,7 +137,7 @@ public class moviem : NetworkBehaviour
             vel.y = 0; // resetea la velocidad vertical para saltar limpio
             rb.velocity = vel;
 
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            rb.AddForce(Vector3.up * jumpForce * Time.deltaTime, ForceMode.Impulse);
         }
     }
 #endif
@@ -117,6 +147,7 @@ public class moviem : NetworkBehaviour
     Vector3 a = new Vector3(0f, -0.2f, 1f);
     float forca;
     float targetRecoil;
+    bool menuAtivo;
     void Update()
     {
         if (isLocalPlayer)
@@ -135,7 +166,12 @@ public class moviem : NetworkBehaviour
                     }
                 }
             }
+            // Sensibility
+
+            mouseSensitivity = slider_sensi.value;
+
             text_muni.text = municion.ToString();
+
             // --- Barra de vida ---
             bar.value = Vida;
             if (Vida <= 0)
@@ -155,6 +191,20 @@ public class moviem : NetworkBehaviour
                 // Modo normal
                 playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 60, 5f * Time.deltaTime);
                 Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, posInicial, 10f * Time.deltaTime);
+            }
+
+            // funciona en las 2 plataformas
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                menuAtivo = !menuAtivo;
+            }
+            if (menuAtivo)
+            {
+                menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(1, 1, 1), 10f * Time.deltaTime);
+            }
+            else if (menu.transform.localScale != new Vector3(0, 0, 0))
+            {
+                menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(0, 0, 0), 10f * Time.deltaTime);
             }
 
             // PC
@@ -178,15 +228,6 @@ public class moviem : NetworkBehaviour
                 if (!puedeMirar)
                 {
                     targetRecoil = 0f;
-                }
-
-                if (Input.GetKey(KeyCode.Escape))
-                {
-                    menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(1, 1, 1), 1f * Time.deltaTime);
-                }
-                else if (menu.transform.localScale != new Vector3(0, 0, 0))
-                {
-                    menu.transform.localScale = Vector3.Lerp(menu.transform.localScale, new Vector3(0, 0, 0), 1f * Time.deltaTime);
                 }
 
                 // --- Disparo ---
@@ -305,6 +346,29 @@ public class moviem : NetworkBehaviour
                 break;
         }
         targetRecoil = 0;
+    }
+
+    public void CambioFps()
+    {
+        // fps
+        switch (dropFps.value)
+        {
+            case 0:
+                Application.targetFrameRate = 30;
+                break;
+            case 1:
+                Application.targetFrameRate = 45;
+                break;
+            case 2:
+                Application.targetFrameRate = 60;
+                break;
+            case 3:
+                Application.targetFrameRate = 90;
+                break;
+            case 4:
+                Application.targetFrameRate = 120;
+                break;
+        }
     }
 
     public void Armastates(int i)

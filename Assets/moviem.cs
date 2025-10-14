@@ -194,11 +194,9 @@ public class moviem : NetworkBehaviour
                 {
                     rb.AddForce(Vector3.up * jumpForce);
                 }
-                PlayerPrefs.SetFloat("sensi", s_sensi.value);
-                
                 // --- Rotación ---
-                float mouseX = Input.GetAxis("Mouse X") * PlayerPrefs.GetFloat("sensi") * Time.deltaTime;
-                float mouseY = Input.GetAxis("Mouse Y") * PlayerPrefs.GetFloat("sensi") * Time.deltaTime;
+                float mouseX = Input.GetAxis("Mouse X") * s_sensi.value * Time.deltaTime;
+                float mouseY = Input.GetAxis("Mouse Y") * s_sensi.value * Time.deltaTime;
 
                 xRotation -= mouseY;
                 xRotation = Mathf.Clamp(xRotation, -90f, 90f);

@@ -19,8 +19,14 @@ public class bsla : NetworkBehaviour
         {
             Debug.Log("La bala colisiono com: " + collision.gameObject.name);
             collision.gameObject.GetComponent<moviem>().Vida -= moviem.instance.damage;
+            NetworkServer.Destroy(this.gameObject);
+            Destroy(this.gameObject, 5f);
         }
-        NetworkServer.Destroy(this.gameObject);
-        Destroy(this.gameObject, 5f);
+        else
+        {
+            NetworkServer.Destroy(this.gameObject);
+            Destroy(this.gameObject, 5f);
+        }
+
     }
 }

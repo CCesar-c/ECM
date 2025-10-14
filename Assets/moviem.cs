@@ -9,7 +9,7 @@ public class moviem : NetworkBehaviour
 
     [Space(10)]
     [Header("Menus")]
-    public Slider slider_sensi;
+    public Slider s_sensi;
     public Dropdown dropFps;
     public GameObject menu;
 
@@ -30,13 +30,13 @@ public class moviem : NetworkBehaviour
     public float speed = 5f;
     public float jumpForce = 5f;
     private Rigidbody rb;
-    public FixedJoystick joystick;
+
 
     [Space(10)]
     [Header("Cámara")]
     public Camera playerCamera;
     public float mouseSensitivity;
-    private float xRotation = 0f;
+    private float xRotation;
     public bool puedeMirar = false;
 
     [Space(10)]
@@ -69,79 +69,6 @@ public class moviem : NetworkBehaviour
         instance = GetComponent<moviem>();
     }
 
-#if UNITY_ANDROID
-
-    public void ChangeArma()
-    {
-        i++;
-        if (i > 3)
-            i = 0;
-        Armastates(i);
-    }
-
-    public void Mirar()
-    {
-        puedeMirar = true;
-    }
-    public void DesMirar()
-    {
-        puedeMirar = false;
-    }
-
-    public void Atirar()
-    {
-        puedeDisparar = true;
-        if (typo == Typ.Automatico)
-        {
-            if (puedeDisparar && municion > 0)
-            {
-                if (puedeDisparar)
-                {
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
-                }
-                StartCoroutine(DisparoCooldown());
-                CmdCrearBala();
-            }
-        }
-        else if (typo == Typ.Manual)
-        {
-            if (puedeDisparar && municion > 0)
-            {
-                if (puedeDisparar)
-                {
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
-                    Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
-                }
-                StartCoroutine(DisparoCooldown());
-                CmdCrearBala();
-            }
-        }
-    }
-    public void DesAtirar()
-    {
-        puedeDisparar = false;
-    }
-    public void Recaregar()
-    {
-        if (municion >= 0)
-        {
-            Cmdreload();
-        }
-    }
-    public void Pular()
-    {
-        if (IsGrounded())
-        {
-            Vector3 vel = rb.velocity;
-            vel.y = 0; // resetea la velocidad vertical para saltar limpio
-            rb.velocity = vel;
-
-            rb.AddForce(Vector3.up * jumpForce * Time.deltaTime, ForceMode.Impulse);
-        }
-    }
-#endif
-
     Vector3 posInicial = new Vector3(0.6f, -0.3f, 1.1f);
     Vector3 retroceso = new Vector3(0, 0, -1f);
     Vector3 a = new Vector3(0f, -0.2f, 1f);
@@ -152,24 +79,6 @@ public class moviem : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            //celular
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                Vector3 sim = transform.forward * joystick.Vertical + transform.right * joystick.Horizontal;
-                rb.AddForce(sim.normalized * speed);
-                Transform[] arrey = GetComponentsInChildren<Transform>();
-                for (int i = 0; i < arrey.Length; i++)
-                {
-                    if (arrey[i].name == "Controls_Mobile")
-                    {
-                        arrey[i].gameObject.SetActive(true);
-                    }
-                }
-            }
-            // Sensibility
-
-            mouseSensitivity = slider_sensi.value;
-
             text_muni.text = municion.ToString();
 
             // --- Barra de vida ---
@@ -239,7 +148,6 @@ public class moviem : NetworkBehaviour
                         {
                             targetRecoil += forca;
 
-                            // vuelve lentamente a 0 cuando no dispara
                             Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition, Armas[i].transform.localPosition + retroceso, 10f * Time.deltaTime);
                             Armas[i].transform.localPosition = Vector3.Lerp(Armas[i].transform.localPosition + retroceso, Armas[i].transform.localPosition, 10f * Time.deltaTime);
                         }
@@ -286,10 +194,11 @@ public class moviem : NetworkBehaviour
                 {
                     rb.AddForce(Vector3.up * jumpForce);
                 }
-
+                PlayerPrefs.SetFloat("sensi", s_sensi.value);
+                
                 // --- Rotación ---
-                float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-                float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+                float mouseX = Input.GetAxis("Mouse X") * PlayerPrefs.GetFloat("sensi") * Time.deltaTime;
+                float mouseY = Input.GetAxis("Mouse Y") * PlayerPrefs.GetFloat("sensi") * Time.deltaTime;
 
                 xRotation -= mouseY;
                 xRotation = Mathf.Clamp(xRotation, -90f, 90f);
@@ -347,7 +256,6 @@ public class moviem : NetworkBehaviour
         }
         targetRecoil = 0;
     }
-
     public void CambioFps()
     {
         // fps

@@ -59,6 +59,9 @@ public class moviem : NetworkBehaviour
     Vector3 retroceso = new Vector3(0, 0, -1f);
     Vector3 a = new Vector3(0f, -0.2f, 1f);
     float targetRecoil;
+
+    int arma_activa;
+
     bool menuAtivo;
 
     // --- Inicialización ---
@@ -69,6 +72,8 @@ public class moviem : NetworkBehaviour
 
     void Start()
     {
+
+        armaActivaState();
         rb = GetComponent<Rigidbody>();
         instance = this;
         puedeDisparar = true;
@@ -147,6 +152,7 @@ public class moviem : NetworkBehaviour
         // --- Cambiar arma ---
         if (Input.GetKey(KeyCode.Alpha1))
         {
+            armaActivaState();
             typo = Typ.Manual;
             damage = 10;
             municion = 20;
@@ -157,9 +163,11 @@ public class moviem : NetworkBehaviour
                 Armas[a].SetActive(false);
             }
             Armas[0].SetActive(true);
+            armaActivaState();
         }
         if (Input.GetKey(KeyCode.Alpha2))
         {
+            armaActivaState();
             typo = Typ.Manual;
             damage = 100;
             municion = 5;
@@ -173,6 +181,7 @@ public class moviem : NetworkBehaviour
         }
         if (Input.GetKey(KeyCode.Alpha3))
         {
+            armaActivaState();
             typo = Typ.Automatico;
             damage = 30;
             municion = 60;
@@ -186,6 +195,7 @@ public class moviem : NetworkBehaviour
         }
         if (Input.GetKey(KeyCode.Alpha4))
         {
+            armaActivaState();
             typo = Typ.Manual;
             damage = 200;
             municion = 5;
@@ -222,7 +232,39 @@ public class moviem : NetworkBehaviour
 
         transform.Rotate(Vector3.up * mouseX);
     }
-
+    public void armaActivaState()
+    {
+        for (int i = 0; i < Armas.Length; i++)
+        {
+            switch (i)
+            {
+                case 0:
+                    if (Armas[i].activeInHierarchy)
+                    {
+                        arma_activa = i;
+                    }
+                    break;
+                case 1:
+                    if (Armas[i].activeInHierarchy)
+                    {
+                        arma_activa = i;
+                    }
+                    break;
+                case 2:
+                    if (Armas[i].activeInHierarchy)
+                    {
+                        arma_activa = i;
+                    }
+                    break;
+                case 3:
+                    if (Armas[i].activeInHierarchy)
+                    {
+                        arma_activa = i;
+                    }
+                    break;
+            }
+        }
+    }
     bool IsGrounded()
     {
         return Physics.Raycast(transform.position, -transform.up, 1.1f);
@@ -267,20 +309,25 @@ public class moviem : NetworkBehaviour
     IEnumerator Recarga()
     {
         puedeDisparar = false;
-        yield return new WaitForSeconds(delay * 2);
-        puedeDisparar = true;
 
-        for (int i = 0; i < Armas.Length; i++)
+        switch (arma_activa)
         {
-            switch (i)
-            {
-                case 0: municion = 20; break;
-                case 1: municion = 5; break;
-                case 2: municion = 60; break;
-                case 3: municion = 5; break;
-            }
+            case 0:
+                municion = 20;
+                break;
+            case 1:
+                municion = 5;
+                break;
+            case 2:
+                municion = 60;
+                break;
+            case 3:
+                municion = 5;
+                break;
         }
         targetRecoil = 0;
+        yield return new WaitForSeconds(delay * 2);
+        puedeDisparar = true;
     }
 
     public void CambioFps()
